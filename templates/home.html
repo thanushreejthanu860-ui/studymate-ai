@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+{% block title %}Home – AI Learning Assistant{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h2>Welcome back, {{ user.name.split()[0] }} 👋</h2>
+  <p class="muted">Pick up where you left off.</p>
+</div>
+
+<!-- Stats overview -->
+<div class="stat-row">
+  <div class="stat-card"><div class="stat-num">{{ watched_ids|length }}</div><div class="stat-label">Lectures Watched</div></div>
+  <div class="stat-card"><div class="stat-num">{{ quizzes_taken }}</div><div class="stat-label">Quizzes Taken</div></div>
+  <div class="stat-card"><div class="stat-num">{{ avg_score }}%</div><div class="stat-label">Average Score</div></div>
+  <div class="stat-card"><div class="stat-num">{{ lectures|length }}</div><div class="stat-label">Total Lectures</div></div>
+</div>
+
+<!-- Video player + playlist -->
+<div class="video-layout">
+  <div class="video-main">
+    {% if selected %}
+      <div class="video-player-panel">
+        {% if selected.video_file %}
+          <video id="lecture-video" controls
+                 data-lecture-id="{{ selected.id }}">
+            <source src="{{ url_for('static', filename='videos/' + selected.video_file) }}" type="video/mp4">
+          </video>
+        {% elif selected.video_url %}
+          {% set yt_id = selected.video_url.split('v=')[-1].split('&')[0] if 'v=' in selected.video_url else selected.video_url.split('/')[-1] %}
+          <div class="yt-wrapper">
+            <iframe src="https://www.youtube.com/embed/{{ yt_id }}" allowfullscreen></iframe>
+          </div>
+          <button class="btn btn-outline mark-watched-btn"
+                  data-lecture-id="{{ selected.id }}"
+                  {% if selected.id in watched_ids %}disabled{% endif %}>
+            {% if selected.id in watched_ids %}✓ Watched{% else %}Mark as Watched{% endif %}
+          </button>
+        {% endif %}
+      </div>
+      <div class="lecture-notes card">
+        <h3>{{ selected.title }}</h3>
+        <p>{{ selected.notes }}</p>
+      </div>
+    {% else %}
+      <div class="card"><p class="muted">No lectures available yet.</p></div>
+    {% endif %}
+  </div>
+
+  <!-- Playlist -->
+  <div class="playlist card">
+    <h3>All Lectures</h3>
+    {% for lec in lectures %}
+      <div class="playlist-item-row">
+        <a href="{{ url_for('home', lecture_id=lec.id) }}"
+           class="playlist-item {% if selected and lec.id == selected.id %}active{% endif %}">
+          <span class="playlist-title">{{ lec.title }}</span>
+          {% if lec.id in watched_ids %}<span class="watched-tick">✓</span>{% endif %}
+        </a>
+        <a href="{{ url_for('download_notes', lecture_id=lec.id) }}"
+           class="btn btn-outline btn-sm download-notes-btn"
+           title="Download Notes">
+          ⬇ Notes
+        </a>
+      </div>
+    {% endfor %}
+  </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+   const vid = document.getElementById('lecture-video');
+   if (vid) {
+     vid.addEventListener('ended', () => {
+       fetch('/watch/' + vid.dataset.lectureId, { method: 'POST' });
+     });
+   }
+   document.querySelectorAll('.mark-watched-btn').forEach(btn => {
+     btn.addEventListener('click', () => {
+       fetch('/watch/' + btn.dataset.lectureId, { method: 'POST' })
+         .then(() => { btn.textContent = '✓ Watched'; btn.disabled = true; });
+     });
+   });
+</script>
+{% endblock %}

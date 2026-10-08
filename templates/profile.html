@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% block title %}Profile – AI Learning Assistant{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h2>Profile</h2>
+</div>
+
+<div class="profile-grid">
+  <!-- Details card -->
+  <div class="card">
+    <h3>Student Details</h3>
+    <dl class="detail-list">
+      <dt>Student ID</dt><dd>{{ user.student_id or '—' }}</dd>
+      <dt>Email</dt><dd>{{ user.email }}</dd>
+      <dt>Phone</dt><dd>{{ user.phone or '—' }}</dd>
+      <dt>Course</dt><dd>{{ user.course or '—' }}</dd>
+      <dt>Semester</dt><dd>{{ user.semester or '—' }}</dd>
+      <dt>Department</dt><dd>{{ user.department or '—' }}</dd>
+      <dt>College</dt><dd>{{ user.college or '—' }}</dd>
+      <dt>Joined</dt><dd>{{ user.joined.strftime('%B %d, %Y') if user.joined else '—' }}</dd>
+    </dl>
+  </div>
+
+  <!-- Edit form -->
+  <div class="card">
+    <h3>Edit Profile</h3>
+    <form method="POST">
+      <label>Name</label>
+      <input type="text" name="name" value="{{ user.name }}" required>
+      <label>Phone</label>
+      <input type="text" name="phone" value="{{ user.phone or '' }}">
+      <button type="submit" class="btn btn-primary">Save changes</button>
+    </form>
+
+    <hr>
+    <h3>Voice Narration</h3>
+    <label class="toggle-label">
+      <input type="checkbox" id="voice-toggle">
+      <span>Enable voice narration in explainer</span>
+    </label>
+
+    <hr>
+    <h3>Learning Summary</h3>
+    <div class="stat-row">
+      <div class="stat-card"><div class="stat-num">{{ quizzes_taken }}</div><div class="stat-label">Quizzes</div></div>
+      <div class="stat-card"><div class="stat-num">{{ avg_score }}%</div><div class="stat-label">Average</div></div>
+      <div class="stat-card"><div class="stat-num">{{ watched_count }}</div><div class="stat-label">Watched</div></div>
+    </div>
+
+    <hr>
+    <a href="{{ url_for('logout') }}" class="btn btn-outline">Log out</a>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  // Persist voice narration preference in localStorage
+  const toggle = document.getElementById('voice-toggle');
+  toggle.checked = localStorage.getItem('voiceNarration') === 'true';
+  toggle.addEventListener('change', () => {
+    localStorage.setItem('voiceNarration', toggle.checked);
+  });
+</script>
+{% endblock %}

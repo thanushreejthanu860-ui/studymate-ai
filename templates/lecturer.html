@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+{% block title %}Lecturer – AI Learning Assistant{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h2>Lecturer Dashboard</h2>
+  <p class="muted">Welcome, {{ user.name }}</p>
+</div>
+
+<!-- Upload form -->
+<div class="card">
+  <h3>Upload New Lecture</h3>
+  <form method="POST" enctype="multipart/form-data">
+    <label>Topic Title</label>
+    <input type="text" name="title" placeholder="e.g. Introduction to AI" required>
+
+    <label>Lecture Notes (paste text or upload PDF/TXT)</label>
+    <textarea name="notes_text" rows="5" placeholder="Paste notes here…"></textarea>
+    <input type="file" name="notes_file" accept=".pdf,.txt" style="margin-top:0.5rem">
+
+    <label>Lecture Video</label>
+    <div class="video-upload-row">
+      <div>
+        <p class="muted" style="margin:0 0 0.25rem">Upload MP4</p>
+        <input type="file" name="video_file" accept="video/mp4">
+      </div>
+      <div class="or-divider">or</div>
+      <div style="flex:1">
+        <p class="muted" style="margin:0 0 0.25rem">YouTube URL</p>
+        <input type="url" name="video_url" placeholder="https://youtube.com/watch?v=...">
+      </div>
+    </div>
+
+    <button type="submit" class="btn btn-primary" style="margin-top:1rem">Save lecture &amp; generate questions</button>
+  </form>
+</div>
+
+<!-- Lecture list -->
+<div class="card">
+  <h3>Your Lectures</h3>
+  {% if lectures %}
+  <table class="history-table">
+    <thead><tr><th>Title</th><th>Questions</th><th>Created</th><th>Actions</th></tr></thead>
+    <tbody>
+      {% for lec in lectures %}
+      <tr>
+        <td>{{ lec.title }}</td>
+        <td>{{ lec.questions|length }}</td>
+        <td>{{ lec.created_at.strftime('%b %d, %Y') }}</td>
+        <td>
+          <form method="POST" action="{{ url_for('regenerate_questions', lecture_id=lec.id) }}" style="display:inline">
+            <button class="btn btn-outline btn-sm">🔄 Regenerate</button>
+          </form>
+          <form method="POST" action="{{ url_for('delete_lecture', lecture_id=lec.id) }}" style="display:inline"
+                onsubmit="return confirm('Delete this lecture?')">
+            <button class="btn btn-danger btn-sm">🗑 Delete</button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p class="muted">No lectures yet.</p>
+  {% endif %}
+</div>
+
+<!-- Class performance -->
+{% if performance %}
+<div class="card">
+  <h3>Class Performance (Most Missed First)</h3>
+  <table class="history-table">
+    <thead><tr><th>Topic</th><th>Wrong Answer %</th><th>Total Answers</th></tr></thead>
+    <tbody>
+      {% for p in performance %}
+      <tr>
+        <td>{{ p.title }}</td>
+        <td>
+          <div class="mastery-track" style="width:200px;display:inline-block">
+            <div class="mastery-fill level-{% if p.pct >= 50 %}weak{% elif p.pct >= 25 %}average{% else %}strong{% endif %}"
+                 style="width:{{ p.pct }}%"></div>
+          </div>
+          {{ p.pct }}%
+        </td>
+        <td>{{ p.total }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endif %}
+
+<a href="{{ url_for('logout') }}" class="btn btn-outline" style="margin-top:1rem">Log out</a>
+{% endblock %}

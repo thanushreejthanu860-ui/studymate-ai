@@ -1,0 +1,719 @@
+{% extends "base.html" %}
+{% set hide_nav = true %}
+{% block title %}Create Account – StudyMate AI{% endblock %}
+
+{% block head %}
+<style>
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
+  body {
+    font-family: 'Instrument Sans', sans-serif;
+    min-height: 100vh;
+  }
+
+/* ==============================
+     PAGE BACKGROUND
+   ============================== */
+
+  .register-page {
+    min-height: 100vh;
+    width: 100%;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    position: relative;
+    overflow: hidden;
+
+    background: url('https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=1920&q=80') center center / cover no-repeat;
+
+    padding: 30px;
+  }
+
+
+/* ==============================
+     BACKGROUND GLOW
+   ============================== */
+
+  .glow {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(70px);
+    pointer-events: none;
+  }
+
+  .glow-1 {
+    width: 280px;
+    height: 280px;
+
+    background: rgba(0, 157, 255, 0.13);
+
+    top: -80px;
+    left: -60px;
+  }
+
+  .glow-2 {
+    width: 320px;
+    height: 320px;
+
+    background: rgba(0, 112, 255, 0.10);
+
+    right: -80px;
+    bottom: -100px;
+  }
+
+
+/* ==============================
+     REGISTER CARD
+   ============================== */
+
+  .register-card {
+    width: 420px;
+    max-width: 100%;
+
+    position: relative;
+    z-index: 5;
+
+    padding: 55px 38px 30px;
+
+    border-radius: 26px;
+
+    background:
+      linear-gradient(
+        145deg,
+        rgba(255,255,255,.45),
+        rgba(235,249,255,.30)
+      );
+
+    border: 1px solid rgba(255,255,255,.6);
+
+    backdrop-filter: blur(25px);
+    -webkit-backdrop-filter: blur(25px);
+
+    box-shadow:
+      0 25px 70px rgba(0,103,180,.16),
+      0 8px 25px rgba(0,90,160,.10),
+      inset 0 1px 2px rgba(255,255,255,.95);
+
+    text-align: center;
+  }
+
+
+  /* ==============================
+     PROFILE ICON
+  ============================== */
+
+  .profile-icon {
+    position: absolute;
+
+    width: 76px;
+    height: 76px;
+
+    top: -38px;
+    left: 50%;
+
+    transform: translateX(-50%);
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 50%;
+
+    background:
+      linear-gradient(
+        145deg,
+        #63d0ff,
+        #168fe2 55%,
+        #086bc5
+      );
+
+    border: 3px solid rgba(255,255,255,.85);
+
+    color: white;
+
+    font-size: 32px;
+
+    box-shadow:
+      0 12px 30px rgba(0,113,210,.28),
+      inset 0 3px 8px rgba(255,255,255,.55);
+  }
+
+
+  /* ==============================
+     HEADER
+  ============================== */
+
+  .register-title {
+    font-family: 'Bricolage Grotesque', sans-serif;
+
+    font-size: 29px;
+    font-weight: 700;
+
+    color: #0c1d33;
+
+    margin-bottom: 5px;
+  }
+
+  .register-subtitle {
+    font-size: 12px;
+
+    color: #2d4a66;
+
+    margin-bottom: 24px;
+  }
+
+
+  /* ==============================
+     FLASH MESSAGES
+  ============================== */
+
+  .auth-alert {
+    padding: 9px 12px;
+
+    border-radius: 9px;
+
+    font-size: 12px;
+
+    margin-bottom: 14px;
+
+    text-align: left;
+  }
+
+  .auth-alert.error {
+    color: #b42318;
+    background: #fff1f0;
+    border: 1px solid #ffd0cd;
+  }
+
+  .auth-alert.success {
+    color: #087443;
+    background: #edfff5;
+    border: 1px solid #bcebd0;
+  }
+
+  .auth-alert.warning {
+    color: #9a6700;
+    background: #fff9e9;
+    border: 1px solid #f2df9b;
+  }
+
+
+  /* ==============================
+     FORM FIELD
+  ============================== */
+
+  .auth-field {
+    position: relative;
+
+    margin-bottom: 13px;
+  }
+
+  .auth-field input,
+  .auth-field select {
+    width: 100%;
+
+    height: 45px;
+
+    padding: 0 14px 0 42px;
+
+    border-radius: 11px;
+
+    border: 1px solid rgba(58,166,225,.35);
+
+    background: rgba(255,255,255,.58);
+
+    color: #0c1d33;
+
+    font-family: 'Instrument Sans', sans-serif;
+
+    font-size: 13px;
+
+    outline: none;
+
+    transition:
+      border .2s ease,
+      box-shadow .2s ease,
+      background .2s ease;
+  }
+
+  .auth-field input::placeholder {
+    color: #7b8fa0;
+  }
+
+  .auth-field input:hover,
+  .auth-field select:hover {
+    background: rgba(255,255,255,.72);
+  }
+
+  .auth-field input:focus,
+  .auth-field select:focus {
+    background: rgba(255,255,255,.9);
+
+    border-color: #159fe8;
+
+    box-shadow:
+      0 0 0 4px rgba(21,159,232,.10);
+  }
+
+
+  /* ==============================
+     INPUT ICON
+  ============================== */
+
+  .input-icon {
+    position: absolute;
+
+    left: 14px;
+    top: 50%;
+
+    transform: translateY(-50%);
+
+    color: #3184ae;
+
+    font-size: 15px;
+
+    z-index: 2;
+
+    pointer-events: none;
+  }
+
+
+  /* ==============================
+     PASSWORD
+  ============================== */
+
+  .password-toggle {
+    position: absolute;
+
+    right: 12px;
+    top: 50%;
+
+    transform: translateY(-50%);
+
+    border: none;
+
+    background: transparent;
+
+    color: #54819c;
+
+    cursor: pointer;
+
+    font-size: 14px;
+
+    padding: 4px;
+  }
+
+
+  /* ==============================
+     ROLE
+  ============================== */
+
+  .auth-field select {
+    appearance: none;
+    -webkit-appearance: none;
+
+    cursor: pointer;
+
+    padding-right: 38px;
+  }
+
+  .select-arrow {
+    position: absolute;
+
+    right: 14px;
+    top: 50%;
+
+    transform: translateY(-50%);
+
+    color: #4d7e9d;
+
+    pointer-events: none;
+
+    font-size: 12px;
+  }
+
+
+  /* ==============================
+     REGISTER BUTTON
+  ============================== */
+
+  .register-btn {
+    width: 100%;
+    height: 47px;
+
+    margin-top: 5px;
+
+    border: none;
+
+    border-radius: 24px;
+
+    background:
+      linear-gradient(
+        180deg,
+        #45c8ff 0%,
+        #079bea 50%,
+        #0874cf 100%
+      );
+
+    color: white;
+
+    font-family: 'Instrument Sans', sans-serif;
+
+    font-size: 14px;
+
+    font-weight: 700;
+
+    cursor: pointer;
+
+    box-shadow:
+      0 8px 22px rgba(0,130,215,.28),
+      inset 0 1px 2px rgba(255,255,255,.65);
+
+    transition:
+      transform .2s ease,
+      box-shadow .2s ease,
+      filter .2s ease;
+  }
+
+  .register-btn:hover {
+    transform: translateY(-2px);
+
+    filter: brightness(1.04);
+
+    box-shadow:
+      0 12px 28px rgba(0,130,215,.36);
+  }
+
+  .register-btn:active {
+    transform: translateY(0);
+  }
+
+
+  /* ==============================
+     LOGIN LINK
+  ============================== */
+
+  .auth-switch {
+    margin-top: 20px;
+
+    font-size: 12px;
+
+    color: #2d4a66;
+  }
+
+  .auth-switch a {
+    color: #0c1d33;
+
+    font-weight: 700;
+
+    text-decoration: none;
+  }
+
+  .auth-switch a:hover {
+    text-decoration: underline;
+  }
+
+
+  /* ==============================
+     MOBILE
+  ============================== */
+
+  @media (max-width: 600px) {
+
+    .register-page {
+      padding: 20px;
+    }
+
+    .register-card {
+      padding: 52px 24px 28px;
+    }
+
+    .bubble {
+      opacity: .5;
+    }
+  }
+</style>
+{% endblock %}
+
+
+{% block content %}
+
+<div class="register-page">
+
+  <!-- Background glow -->
+
+  <div class="glow glow-1"></div>
+  <div class="glow glow-2"></div>
+
+
+  <!-- ==========================
+       REGISTER CARD
+   =========================== -->
+
+  <div class="register-card">
+
+    <!-- User icon -->
+
+    <div class="profile-icon">
+      👤
+    </div>
+
+
+    <!-- Header -->
+
+    <h1 class="register-title">
+      Create Account
+    </h1>
+
+    <p class="register-subtitle">
+      Join StudyMate AI and start learning smarter.
+    </p>
+
+
+    <!-- Flash messages -->
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+
+      {% for cat, msg in messages %}
+
+        <div class="auth-alert {{ cat }}">
+          {{ msg }}
+        </div>
+
+      {% endfor %}
+
+    {% endwith %}
+
+
+    <!-- ==========================
+         REGISTER FORM
+    =========================== -->
+
+    <form method="POST">
+
+
+      <!-- Full Name -->
+
+      <div class="auth-field">
+
+        <span class="input-icon">
+          👤
+        </span>
+
+        <input
+          type="text"
+          name="name"
+          placeholder="Full Name"
+          autocomplete="name"
+          required
+        >
+
+      </div>
+
+
+      <!-- Email -->
+
+      <div class="auth-field">
+
+        <span class="input-icon">
+          ✉
+        </span>
+
+        <input
+          type="email"
+          name="email"
+          placeholder="Email Address"
+          autocomplete="email"
+          required
+        >
+
+      </div>
+
+
+      <!-- Password -->
+
+      <div class="auth-field">
+
+        <span class="input-icon">
+          🔒
+        </span>
+
+        <input
+          type="password"
+          id="password"
+          name="password"
+          placeholder="Create Password"
+          autocomplete="new-password"
+          required
+        >
+
+        <button
+          type="button"
+          class="password-toggle"
+          onclick="togglePassword('password', this)"
+          aria-label="Show password"
+        >
+          👁
+        </button>
+
+      </div>
+
+
+      <!-- Confirm Password -->
+
+      <div class="auth-field">
+
+        <span class="input-icon">
+          🔐
+        </span>
+
+        <input
+          type="password"
+          id="confirm_password"
+          name="confirm_password"
+          placeholder="Confirm Password"
+          autocomplete="new-password"
+          required
+        >
+
+        <button
+          type="button"
+          class="password-toggle"
+          onclick="togglePassword('confirm_password', this)"
+          aria-label="Show password"
+        >
+          👁
+        </button>
+
+      </div>
+
+
+      <!-- Role -->
+
+      <div class="auth-field">
+
+        <span class="input-icon">
+          🎓
+        </span>
+
+        <select name="role" required>
+
+          <option value="" disabled selected>
+            Select Role
+          </option>
+
+          <option value="student">
+            Student
+          </option>
+
+          <option value="lecturer">
+            Lecturer
+          </option>
+
+        </select>
+
+        <span class="select-arrow">
+          ▼
+        </span>
+
+      </div>
+
+
+      <!-- Register -->
+
+      <button
+        type="submit"
+        class="register-btn"
+        onclick="return validatePassword()"
+      >
+        Create Account &nbsp; →
+      </button>
+
+    </form>
+
+
+    <!-- Login -->
+
+    <p class="auth-switch">
+
+      Already have an account?
+
+      <a href="{{ url_for('login') }}">
+        Login
+      </a>
+
+    </p>
+
+  </div>
+
+</div>
+
+
+<script>
+
+  /* ==============================
+     SHOW / HIDE PASSWORD
+  ============================== */
+
+  function togglePassword(id, button) {
+
+    const password =
+      document.getElementById(id);
+
+    if (password.type === "password") {
+
+      password.type = "text";
+
+      button.textContent = "🙈";
+
+    } else {
+
+      password.type = "password";
+
+      button.textContent = "👁";
+
+    }
+  }
+
+
+  /* ==============================
+     PASSWORD VALIDATION
+  ============================== */
+
+  function validatePassword() {
+
+    const password =
+      document.getElementById("password").value;
+
+    const confirmPassword =
+      document.getElementById("confirm_password").value;
+
+
+    if (password !== confirmPassword) {
+
+      alert("Passwords do not match.");
+
+      return false;
+    }
+
+
+    if (password.length < 6) {
+
+      alert("Password must contain at least 6 characters.");
+
+      return false;
+    }
+
+
+    return true;
+  }
+
+</script>
+
+{% endblock %}

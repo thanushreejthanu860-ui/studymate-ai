@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block title %}Quiz – AI Learning Assistant{% endblock %}
+{% block content %}
+<div class="quiz-run-wrap">
+  <form method="POST" action="{{ url_for('quiz_submit') }}" id="quiz-run-form">
+    <!-- Progress bar -->
+    <div class="progress-bar-wrap">
+      <div class="progress-bar-fill" id="progress-bar" style="width: {{ (1 / questions|length * 100)|round }}%"></div>
+    </div>
+    <div class="progress-label">
+      Question <span id="q-current">1</span> of {{ questions|length }}
+    </div>
+
+    <!-- Question slides -->
+    {% for q in questions %}
+    <div class="question-slide {% if not loop.first %}hidden{% endif %}" data-index="{{ loop.index0 }}">
+      <div class="card question-card">
+        <p class="question-text">{{ q.text }}</p>
+        <div class="options-grid">
+          {% for letter, text in [('A', q.option_a), ('B', q.option_b), ('C', q.option_c), ('D', q.option_d)] %}
+          <label class="option-label">
+            <input type="radio" name="q_{{ q.id }}" value="{{ letter }}" required>
+            <span class="option-box"><span class="option-letter">{{ letter }}</span> {{ text }}</span>
+          </label>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+
+    <div class="quiz-nav">
+      <button type="button" class="btn btn-outline" id="prev-btn" onclick="prevQ()" style="display:none">← Previous</button>
+      <button type="button" class="btn btn-primary" id="next-btn" onclick="nextQ()">Next →</button>
+      <button type="submit" class="btn btn-primary" id="submit-btn" style="display:none">Submit Quiz</button>
+    </div>
+  </form>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/quiz.js') }}"></script>
+<script>initQuiz({{ questions|length }});</script>
+{% endblock %}

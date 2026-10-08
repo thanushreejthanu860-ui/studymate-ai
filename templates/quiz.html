@@ -1,0 +1,167 @@
+{% extends "base.html" %}
+{% block title %}Quiz – AI Learning Assistant{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h2>Quiz</h2>
+</div>
+
+<!-- Quiz record card -->
+<div class="card quiz-record">
+  <h3>Your Quiz Record</h3>
+  <div class="stat-row">
+    <div class="stat-card"><div class="stat-num">{{ quizzes_taken }}</div><div class="stat-label">Taken</div></div>
+    <div class="stat-card"><div class="stat-num">{{ avg_score }}%</div><div class="stat-label">Average</div></div>
+    <div class="stat-card"><div class="stat-num">{{ best_score }}%</div><div class="stat-label">Best</div></div>
+    <div class="stat-card"><div class="stat-num">{{ last_score }}%</div><div class="stat-label">Last</div></div>
+  </div>
+  {% if last4 %}
+  <div class="card" style="margin-top: 1rem;">
+    <h3 style="font-size: 1rem; margin-bottom: 1rem;">Recent Scores Trend</h3>
+    <div style="position: relative; height: 200px;">
+      <canvas id="quizTrendChart"></canvas>
+    </div>
+  </div>
+  {% endif %}
+</div>
+
+<!-- Quiz setup form -->
+<form method="POST" action="{{ url_for('quiz_start') }}" id="quiz-form">
+  <div class="card">
+    <h3>Which topic should the quiz cover?</h3>
+    <div class="chip-group" id="topic-chips">
+      <button type="button" class="chip active" data-value="all" onclick="toggleTopic(this)">All topics</button>
+      {% for lec in lectures %}
+        <button type="button" class="chip" data-value="{{ lec.id }}" onclick="toggleTopic(this)">{{ lec.title }}</button>
+      {% endfor %}
+    </div>
+    <!-- Hidden inputs populated by JS -->
+    <div id="topic-inputs"></div>
+  </div>
+
+  <div class="card">
+    <h3>How many questions?</h3>
+    <div class="chip-group">
+      {% for n in [3, 6, 9, 12] %}
+        <button type="button" class="chip {% if n == 6 %}active{% endif %}"
+                data-value="{{ n }}" onclick="selectCount(this)">{{ n }}</button>
+      {% endfor %}
+    </div>
+    <input type="hidden" name="count" id="count-input" value="6">
+  </div>
+
+  <button type="submit" class="btn btn-primary" id="gen-btn">Generate quiz</button>
+</form>
+
+<!-- Loading overlay -->
+<div id="loading-overlay" style="display:none">
+  <div class="loading-box">
+    <div class="spinner"></div>
+    <p>Generating your quiz…</p>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  let selectedTopics = new Set(['all']);
+
+  function toggleTopic(btn) {
+    const val = btn.dataset.value;
+    if (val === 'all') {
+      selectedTopics = new Set(['all']);
+      document.querySelectorAll('#topic-chips .chip').forEach(c => c.classList.remove('active'));
+    } else {
+      selectedTopics.delete('all');
+      document.querySelector('[data-value="all"]').classList.remove('active');
+      if (btn.classList.contains('active')) {
+        selectedTopics.delete(val);
+        btn.classList.remove('active');
+      } else {
+        selectedTopics.add(val);
+        btn.classList.add('active');
+      }
+      if (selectedTopics.size === 0) {
+        selectedTopics.add('all');
+        document.querySelector('[data-value="all"]').classList.add('active');
+        return;
+      }
+    }
+    btn.classList.toggle('active', selectedTopics.has(val));
+    updateTopicInputs();
+  }
+
+  function updateTopicInputs() {
+    const container = document.getElementById('topic-inputs');
+    container.innerHTML = '';
+    if (!selectedTopics.has('all')) {
+      selectedTopics.forEach(id => {
+        const inp = document.createElement('input');
+        inp.type = 'hidden'; inp.name = 'lecture_ids'; inp.value = id;
+        container.appendChild(inp);
+      });
+    }
+  }
+
+  function selectCount(btn) {
+    document.querySelectorAll('.chip[data-value]').forEach(c => {
+      if (['3','6','9','12'].includes(c.dataset.value)) c.classList.remove('active');
+    });
+    btn.classList.add('active');
+    document.getElementById('count-input').value = btn.dataset.value;
+  }
+
+  document.getElementById('quiz-form').addEventListener('submit', () => {
+    document.getElementById('loading-overlay').style.display = 'flex';
+  });
+
+  // Quiz trend line chart
+  {% if last4 %}
+  const quizCtx = document.getElementById('quizTrendChart');
+  new Chart(quizCtx, {
+    type: 'line',
+    data: {
+      labels: {{ last4|map(attribute=0)|list|tojson }},
+      datasets: [{
+        label: 'Score %',
+        data: {{ last4|map(attribute=1)|list|tojson }},
+        borderColor: '#16895c',
+        backgroundColor: 'rgba(22, 137, 92, 0.15)',
+        fill: true,
+        tension: 0.3,
+        pointBackgroundColor: '#16895c',
+        pointBorderColor: '#fff',
+        pointBorderWidth: 2,
+        pointRadius: 5,
+        pointHoverRadius: 7
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: '#14213d',
+          titleColor: '#fff',
+          bodyColor: '#e8eaf6',
+          padding: 12,
+          cornerRadius: 8
+        }
+      },
+      scales: {
+        y: {
+          min: 0,
+          max: 100,
+          grid: { color: 'rgba(22,137,92,0.08)' },
+          ticks: { color: '#5d6785', stepSize: 20 }
+        },
+        x: {
+          grid: { display: false },
+          ticks: { color: '#5d6785' }
+        }
+      }
+    }
+  });
+  {% endif %}
+</script>
+{% endblock %}

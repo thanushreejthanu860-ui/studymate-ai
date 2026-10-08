@@ -1,0 +1,175 @@
+{% extends "base.html" %}
+{% block title %}Dashboard – AI Learning Assistant{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h2>Dashboard</h2>
+</div>
+
+<!-- Stat cards -->
+<div class="stat-row">
+  <div class="stat-card"><div class="stat-num">{{ attempts|length }}</div><div class="stat-label">Quizzes Taken</div></div>
+  <div class="stat-card"><div class="stat-num">{{ avg_score }}%</div><div class="stat-label">Average Score</div></div>
+  <div class="stat-card"><div class="stat-num">{{ watched_count }}</div><div class="stat-label">Lectures Watched</div></div>
+  <div class="stat-card"><div class="stat-num">{{ weakest.title if weakest else '—' }}</div><div class="stat-label">Weakest Topic</div></div>
+</div>
+
+<!-- Score line chart -->
+{% if attempts %}
+<div class="card">
+  <h3>Quiz Scores Over Time</h3>
+  <div style="position: relative; height: 300px;">
+    <canvas id="scoreChart"></canvas>
+  </div>
+</div>
+{% endif %}
+
+<!-- Topic mastery radar chart -->
+{% if topic_stats %}
+<div class="card">
+  <h3>Topic Mastery Overview</h3>
+  <div style="position: relative; height: 300px;">
+    <canvas id="radarChart"></canvas>
+  </div>
+</div>
+{% endif %}
+
+<!-- Topic mastery bars -->
+{% if topic_stats %}
+<div class="card">
+  <h3>Topic Mastery (All Quizzes)</h3>
+  {% for ts in topic_stats %}
+  <div class="mastery-row">
+    <span class="mastery-label">{{ ts.title }}</span>
+    <div class="mastery-track">
+      <div class="mastery-fill level-{{ ts.level|lower }}" style="width:{{ ts.pct }}%"></div>
+    </div>
+    <span class="mastery-pct level-{{ ts.level|lower }}">{{ ts.pct }}% {{ ts.level }}</span>
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+
+<!-- Focus next -->
+{% if weakest %}
+<div class="card focus-card">
+  <h3>Focus Next 🎯</h3>
+  <p><strong>{{ weakest.title }}</strong> — {{ weakest.pct }}% mastery</p>
+  <div class="focus-actions">
+    <a href="{{ url_for('home', lecture_id=weakest.lecture.id) }}" class="btn btn-outline">📺 Watch lecture</a>
+    <a href="{{ url_for('quiz') }}" class="btn btn-primary">📝 Quiz me on this topic</a>
+  </div>
+</div>
+{% endif %}
+
+<!-- Quiz history -->
+{% if attempts %}
+<div class="card">
+  <h3>Quiz History</h3>
+  <table class="history-table">
+    <thead><tr><th>Date</th><th>Score</th><th>Total</th><th></th></tr></thead>
+    <tbody>
+      {% for a in attempts|reverse %}
+      <tr>
+        <td>{{ a.created_at.strftime('%b %d, %Y') }}</td>
+        <td>{{ a.score }}</td>
+        <td>{{ a.total }}</td>
+        <td><a href="{{ url_for('results', attempt_id=a.id) }}" class="btn btn-outline btn-sm">View analysis</a></td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+<div class="card"><p class="muted">No quizzes taken yet. <a href="{{ url_for('quiz') }}">Take your first quiz →</a></p></div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+  // Score line chart
+  {% if attempts %}
+  const scoreCtx = document.getElementById('scoreChart');
+  new Chart(scoreCtx, {
+    type: 'line',
+    data: {
+      labels: {{ chart_labels|tojson }},
+      datasets: [{
+        label: 'Score %',
+        data: {{ scores|tojson }},
+        borderColor: '#3b4cd8',
+        backgroundColor: 'rgba(59, 76, 216, 0.15)',
+        fill: true,
+        tension: 0.3,
+        pointBackgroundColor: '#3b4cd8',
+        pointBorderColor: '#fff',
+        pointBorderWidth: 2,
+        pointRadius: 5,
+        pointHoverRadius: 7
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: '#14213d',
+          titleColor: '#fff',
+          bodyColor: '#e8eaf6',
+          padding: 12,
+          cornerRadius: 8
+        }
+      },
+      scales: {
+        y: {
+          min: 0,
+          max: 100,
+          grid: { color: 'rgba(59,76,216,0.08)' },
+          ticks: { color: '#5d6785', stepSize: 20 }
+        },
+        x: {
+          grid: { display: false },
+          ticks: { color: '#5d6785' }
+        }
+      }
+    }
+  });
+  {% endif %}
+
+  // Radar chart for topic mastery
+  {% if topic_stats %}
+  const radarCtx = document.getElementById('radarChart');
+  new Chart(radarCtx, {
+    type: 'radar',
+    data: {
+      labels: {{ topic_stats|map(attribute='title')|list|tojson }},
+      datasets: [{
+        label: 'Mastery %',
+        data: {{ topic_stats|map(attribute='pct')|list|tojson }},
+        borderColor: '#3b4cd8',
+        backgroundColor: 'rgba(59, 76, 216, 0.2)',
+        pointBackgroundColor: '#3b4cd8',
+        pointBorderColor: '#fff',
+        pointBorderWidth: 2,
+        pointRadius: 4
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        r: {
+          min: 0,
+          max: 100,
+          grid: { color: 'rgba(59,76,216,0.15)' },
+          angleLines: { color: 'rgba(59,76,216,0.15)' },
+          pointLabels: { color: '#5d6785', font: { size: 11 } },
+          ticks: { display: false }
+        }
+      }
+    }
+  });
+  {% endif %}
+</script>
+{% endblock %}
